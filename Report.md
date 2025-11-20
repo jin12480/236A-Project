@@ -20,7 +20,7 @@ We formulate the training of a multi-class linear classifier as a Linear Program
 
 **Decision Variables:**
 - $W \in \mathbb{R}^{K \times M}$: weight matrix where $W[k, :]$ is the weight vector for class $k$
-- $b \in \mathbb{R}^{K}$: bias vector where $b[k]$ is the bias for class $k$
+- $\mathbf{b} \in \mathbb{R}^{K}$: bias vector where $\mathbf{b}[k]$ is the bias for class $k$
 
 **Constraints:**
 For each training sample $(\mathbf{x}^{(i)}, y^{(i)})$ and for all classes $k \neq y^{(i)}$:
@@ -29,16 +29,16 @@ $$\mathbf{w}_{y^{(i)}}^T \mathbf{x}^{(i)} + b_{y^{(i)}} \geq \mathbf{w}_k^T \mat
 where $\gamma = 1.0$ is the margin parameter.
 
 **Objective:**
-$$\min_{W, b} \|W\|_F^2 = \min_{W, b} \sum_{k=1}^{K} \sum_{m=1}^{M} W[k,m]^2$$
+$$\min_{W, \mathbf{b}} \|W\|_F^2 = \min_{W, \mathbf{b}} \sum_{k=1}^{K} \sum_{m=1}^{M} W[k,m]^2$$
 
 This minimizes the Frobenius norm of the weight matrix, providing L2 regularization to prevent overfitting and ensure the problem is well-posed.
 
 **Fallback Method (Soft Margin):**
 When the hard margin problem is infeasible (data not linearly separable), we introduce slack variables $\xi_i \geq 0$ for each sample and modify the constraints:
-$$\mathbf{w}_{y^{(i)}}^T \mathbf{x}^{(i)} + b_{y^{(i)}} \geq \mathbf{w}_k^T \mathbf{x}^{(i)} + b_k + \gamma - \xi_i$$
+$$\mathbf{w}_{y^{(i)}}^T \mathbf{x}^{(i)} + \mathbf{b}_{y^{(i)}} \geq \mathbf{w}_k^T \mathbf{x}^{(i)} + \mathbf{b}_k + \gamma - \xi_i$$
 
 The objective becomes:
-$$\min_{W, b, \xi} \|W\|_F^2 + C \sum_{i=1}^{N} \xi_i$$
+$$\min_{W, \mathbf{b}, \boldsymbol{\xi}} \|W\|_F^2 + C \sum_{i=1}^{N} \xi_i$$
 
 where $C = 1.0$ is the regularization parameter for slack.
 
@@ -76,7 +76,7 @@ For a given total budget $B_{\text{tot}}$ and $M = 784$ features:
    - $x_{\min}^m = \min_i x_m^{(i)}$ (over training set)
    - $x_{\max}^m = \max_i x_m^{(i)}$ (over training set)
    - Number of quantization levels: $L = 2^b$
-   - Step size: $\Delta_m = (x_{\max}^m - x_{\min}^m) / (L - 1)$
+   - Step size: $\Delta_m = \frac{x_{\max}^m - x_{\min}^m}{L - 1}$
 
 3. Quantize feature $x_m$:
    $$q_m = \text{Round}\left(\frac{x_m - x_{\min}^m}{\Delta_m}\right)$$
@@ -94,7 +94,7 @@ After quantization, we train the classifier from Task 1 on quantized training da
 - **Quantization Parameters:** Computed from training data only (no test leakage)
 - **Uniform Allocation:** All features receive the same bit-depth $b$ (simplest approach)
 - **Dequantization:** Quantized values are dequantized back to approximate original range before classification
-- **Train/Val/Test Separation:** Quantization parameters estimated from training set, applied to val/test sets
+- **Train/Val/Test Separation:** Quantization parameters estimated from training set, applied to validation/test sets
 
 ### 3.3 Results
 
@@ -121,7 +121,7 @@ Test accuracy vs. total budget $B_{\text{tot}}$ on Fashion-MNIST:
 
 ### 4.1 Formulation
 
-In the decentralized setting, each of 4 sensors observes one quadrant (196 features each). For a fixed per-sensor budget $k$ (bits per image per sensor):
+In the decentralized setting, each of $4$ sensors observes one quadrant ($196$ features each). For a fixed per-sensor budget $k$ (bits per image per sensor):
 
 **Per-Sensor Quantization:**
 For each sensor $s \in \{1, 2, 3, 4\}$:
@@ -147,14 +147,14 @@ After quantization, quantized blocks from all sensors are concatenated to form t
 
 Test accuracy vs. per-sensor budget $k$ on Fashion-MNIST:
 
-| k (bits/sensor) | Total Budget | $b_s$ (bits/feature) | Test Accuracy |
-|-----------------|--------------|----------------------|---------------|
-| 25              | 100          | (0, 0, 0, 0)         | 32.4%         |
-| 100             | 400          | (0, 0, 0, 0)         | 32.4%         |
-| 196             | 784          | (1, 1, 1, 1)         | 85.4%         |
-| 392             | 1568         | (2, 2, 2, 2)         | 89.4%         |
-| 588             | 2352         | (3, 3, 3, 3)         | 89.6%         |
-| 784             | 3136         | (4, 4, 4, 4)         | 90.4%         |
+| $k$ (bits/sensor) | Total Budget | $(b_1, b_2, b_3, b_4)$ (bits/feature) | Test Accuracy |
+|-------------------|--------------|--------------------------------------|---------------|
+| 25                | 100          | $(0, 0, 0, 0)$                        | 32.4%         |
+| 100               | 400          | $(0, 0, 0, 0)$                        | 32.4%         |
+| 196               | 784          | $(1, 1, 1, 1)$                        | 85.4%         |
+| 392               | 1568         | $(2, 2, 2, 2)$                        | 89.4%         |
+| 588               | 2352         | $(3, 3, 3, 3)$                        | 89.6%         |
+| 784               | 3136         | $(4, 4, 4, 4)$                        | 90.4%         |
 
 **Observations:**
 - Performance matches centralized compression at matched total budgets
@@ -173,7 +173,7 @@ Given a total budget $B_{\text{tot}}$ shared across 4 sensors, we optimize bit a
 We use an outer search over candidate allocations with inner LP solves:
 
 1. **Generate Candidate Allocations:**
-   - Uniform allocation: $b_s = \lfloor B_{\text{tot}} / \sum_{s=1}^4 d_s \rfloor$ for all $s$
+   - Uniform allocation: $b_s = \lfloor B_{\text{tot}} / \sum_{s=1}^4 d_s \rfloor$ for all $s \in \{1, 2, 3, 4\}$
    - Non-uniform allocations: Try giving one sensor $b_s + 1$ bits while others get $b_s$ bits, subject to budget constraint: $\sum_{s=1}^4 d_s \cdot b_s \leq B_{\text{tot}}$
 
 2. **For Each Candidate Allocation:**
@@ -205,18 +205,18 @@ We use an outer search over candidate allocations with inner LP solves:
 
 Test accuracy vs. total budget $B_{\text{tot}}$ with optimized allocations:
 
-| Budget | Selected Allocation | Actual Budget | Test Accuracy |
-|--------|---------------------|---------------|---------------|
-| 100    | (0, 0, 0, 0)        | 0             | 32.4%         |
-| 400    | (0, 1, 0, 0)        | 196           | 76.8%         |
-| 784    | (1, 1, 1, 1)        | 784           | 85.4%         |
-| 1568   | (2, 2, 2, 2)        | 1568          | 89.4%         |
-| 2352   | (2, 4, 2, 2)        | 1960          | 90.4%         |
-| 3136   | (3, 5, 3, 3)        | 2744          | 90.2%         |
+| Budget | Selected Allocation $(b_1, b_2, b_3, b_4)$ | Actual Budget | Test Accuracy |
+|--------|-------------------------------------------|---------------|---------------|
+| 100    | $(0, 0, 0, 0)$                             | 0             | 32.4%         |
+| 400    | $(0, 1, 0, 0)$                             | 196           | 76.8%         |
+| 784    | $(1, 1, 1, 1)$                             | 784           | 85.4%         |
+| 1568   | $(2, 2, 2, 2)$                             | 1568          | 89.4%         |
+| 2352   | $(2, 4, 2, 2)$                             | 1960          | 90.4%         |
+| 3136   | $(3, 5, 3, 3)$                             | 2744          | 90.2%         |
 
 **Key Observations:**
-- **Non-uniform allocations can outperform uniform:** At budget 400, allocation (0, 1, 0, 0) achieves 76.8% vs. uniform (0, 0, 0, 0) at 32.4%
-- **Higher budgets benefit from non-uniform allocation:** At budget 2352, allocation (2, 4, 2, 2) achieves 90.4% accuracy, matching higher uniform allocations
+- **Non-uniform allocations can outperform uniform:** At budget $400$, allocation $(0, 1, 0, 0)$ achieves $76.8\%$ vs. uniform $(0, 0, 0, 0)$ at $32.4\%$
+- **Higher budgets benefit from non-uniform allocation:** At budget $2352$, allocation $(2, 4, 2, 2)$ achieves $90.4\%$ accuracy, matching higher uniform allocations
 - **Centralized vs. Decentralized:** At matched budgets, decentralized with optimized allocation can match or slightly exceed centralized performance
 
 ---
@@ -237,7 +237,7 @@ Given a target accuracy $\alpha$, find the minimal total bit budget $B_{\text{to
 **Decentralized:**
 1. Search through candidate budgets $B \in B_{\text{grid}}$ in ascending order
 2. For each $B$, run decentralized compression with optimized allocation (Task 3.2) and evaluate test accuracy
-3. Return the smallest $B$ and its corresponding allocation where test accuracy $\geq \alpha$
+3. Return the smallest $B$ and its corresponding allocation $(b_1, b_2, b_3, b_4)$ where test accuracy $\geq \alpha$
 
 **Decision Variables:**
 - $B_{\text{tot}} \in \mathbb{Z}_{\geq 0}$: total bit budget (centralized)
@@ -261,19 +261,19 @@ Given a target accuracy $\alpha$, find the minimal total bit budget $B_{\text{to
 
 Minimal bits required to achieve target accuracy $\alpha$:
 
-| Target α | Centralized Min Bits | Decentralized Min Bits | Decentralized Allocation |
-|----------|---------------------|----------------------|-------------------------|
-| 0.60     | 784                 | 400                  | (0, 1, 0, 0)            |
-| 0.70     | 784                 | 400                  | (0, 1, 0, 0)            |
-| 0.80     | 784                 | 784                  | (1, 1, 1, 1)            |
-| 0.90     | 3136                | 2352                 | (2, 4, 2, 2)            |
-| 0.95     | None                | None                 | N/A                     |
+| Target $\alpha$ | Centralized Min Bits | Decentralized Min Bits | Decentralized Allocation $(b_1, b_2, b_3, b_4)$ |
+|-----------------|---------------------|----------------------|-------------------------------------------------|
+| 0.60            | 784                 | 400                  | $(0, 1, 0, 0)$                                   |
+| 0.70            | 784                 | 400                  | $(0, 1, 0, 0)$                                   |
+| 0.80            | 784                 | 784                  | $(1, 1, 1, 1)$                                   |
+| 0.90            | 3136                | 2352                 | $(2, 4, 2, 2)$                                   |
+| 0.95            | None                | None                 | N/A                                              |
 
 **Key Observations:**
-- **Decentralized can be more efficient:** For lower targets (0.6-0.7), decentralized requires only 400 bits vs. 784 bits for centralized
-- **Non-uniform allocation advantage:** The (0, 1, 0, 0) allocation allows achieving 60-70% accuracy with much fewer bits than uniform allocation
-- **Higher targets require more bits:** Target 0.90 requires 3136 bits (centralized) or 2352 bits (decentralized with optimized allocation)
-- **Target 0.95 not achievable:** Within the tested budget range, 95% accuracy is not achievable for either setting
+- **Decentralized can be more efficient:** For lower targets ($0.6$-$0.7$), decentralized requires only $400$ bits vs. $784$ bits for centralized
+- **Non-uniform allocation advantage:** The $(0, 1, 0, 0)$ allocation allows achieving $60$-$70\%$ accuracy with much fewer bits than uniform allocation
+- **Higher targets require more bits:** Target $0.90$ requires $3136$ bits (centralized) or $2352$ bits (decentralized with optimized allocation)
+- **Target $0.95$ not achievable:** Within the tested budget range, $95\%$ accuracy is not achievable for either setting
 
 **Discussion of Centralized vs. Decentralized Gap:**
 - For lower accuracy targets, decentralized with optimized non-uniform allocation can be more efficient than centralized uniform allocation
@@ -287,8 +287,8 @@ Minimal bits required to achieve target accuracy $\alpha$:
 
 This project successfully demonstrates the application of Linear Programming to multi-class classification under communication constraints. Key findings:
 
-1. **LP-based classification** achieves strong baseline performance (89.8% on Fashion-MNIST) with a simple margin-based formulation
-2. **Uniform scalar quantization** provides a practical compression scheme, with 1-2 bits per feature achieving near-baseline accuracy
+1. **LP-based classification** achieves strong baseline performance ($89.8\%$ on Fashion-MNIST) with a simple margin-based formulation
+2. **Uniform scalar quantization** provides a practical compression scheme, with $1$-$2$ bits per feature achieving near-baseline accuracy
 3. **Non-uniform bit allocation** in decentralized settings can outperform uniform allocation, especially at lower budgets
 4. **Decentralized compression** with optimized allocation can match or exceed centralized performance at matched budgets for certain accuracy targets
 
