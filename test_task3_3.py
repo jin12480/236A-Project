@@ -33,6 +33,7 @@ print("(This may take several minutes...)")
 
 cent_min = []
 decz_min = []
+decz_alloc = []
 
 for alpha in alphas:
     print(f"\n--- Target accuracy alpha = {alpha} ---")
@@ -58,6 +59,7 @@ for alpha in alphas:
         alpha=alpha, B_grid=B_grid
     )
     decz_min.append(Bd)
+    decz_alloc.append(alloc)
     print(f"    Minimal bits (decentralized): {Bd}, allocation: {alloc}")
 
 # Create result dictionary
@@ -70,10 +72,10 @@ result_target = {
 print("\n" + "=" * 60)
 print("Task 3.3 Results:")
 print("=" * 60)
-print(f"{'α':>6} | {'Centralized':>15} | {'Decentralized':>15} | {'Allocation':>20}")
+print(f"{'Alpha':>6} | {'Centralized':>15} | {'Decentralized':>15} | {'Allocation':>20}")
 print("-" * 60)
-for a, Bc, Bd in zip(alphas, cent_min, decz_min):
-    alloc_str = str(alloc) if Bd is not None else "N/A"
+for a, Bc, Bd, alloc in zip(alphas, cent_min, decz_min, decz_alloc):
+    alloc_str = str(alloc) if alloc is not None else "N/A"
     Bc_str = str(Bc) if Bc is not None else "N/A"
     Bd_str = str(Bd) if Bd is not None else "N/A"
     print(f"{a:6.2f} | {Bc_str:>15} | {Bd_str:>15} | {alloc_str:>20}")
