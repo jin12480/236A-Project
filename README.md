@@ -36,31 +36,31 @@ In this project, we explore these questions in a setting where an image is obser
 
 ### 1.1 Classification
 
-Classification is a fundamental task in supervised machine learning where the goal is to map a given set of data points to predefined categories or classes. The input data can be represented as a dataset **X** ∈ ℝ^(N×M) containing N samples of dimension M, with rows **x**^(i) ∈ ℝ^M. Associated with each data point **x**^(i) is a label y^(i) ∈ Y indicating its class or category; Y consists of discrete values representing the classes, e.g., it can be an enumeration {1, 2, ..., K} for K-class classification.
+Classification is a fundamental task in supervised machine learning where the goal is to map a given set of data points to predefined categories or classes. The input data can be represented as a dataset $\mathbf{X} \in \mathbb{R}^{N \times M}$ containing $N$ samples of dimension $M$, with rows $\mathbf{x}^{(i)} \in \mathbb{R}^M$. Associated with each data point $\mathbf{x}^{(i)}$ is a label $y^{(i)} \in \mathcal{Y}$ indicating its class or category; $\mathcal{Y}$ consists of discrete values representing the classes, e.g., it can be an enumeration $\{1, 2, \ldots, K\}$ for $K$-class classification.
 
-The objective of classification is to learn a predictive model or classifier, typically denoted as f: ℝ^M → Y, that maps the input data to its corresponding class labels, i.e., ŷ = f(**x**) where ŷ is an estimate of y. The classification model f(·) can be generally decomposed as f(·) = h(g(·)), where g(·) is a transformation function that extracts information from the input vector **x**, and h(·) is a decision function that takes the output of g(·) and makes the final decision regarding the label estimate of y.
+The objective of classification is to learn a predictive model or classifier, typically denoted as $f: \mathbb{R}^M \to \mathcal{Y}$, that maps the input data to its corresponding class labels, i.e., $\hat{y} = f(\mathbf{x})$ where $\hat{y}$ is an estimate of $y$. The classification model $f(\cdot)$ can be generally decomposed as $f(\cdot) = h(g(\cdot))$, where $g(\cdot)$ is a transformation function that extracts information from the input vector $\mathbf{x}$, and $h(\cdot)$ is a decision function that takes the output of $g(\cdot)$ and makes the final decision regarding the label estimate of $y$.
 
-You will work with **linear classifiers** in this project. A linear classifier is a type of classifier for which the function g(·) is affine, i.e., for each class k:
+You will work with **linear classifiers** in this project. A linear classifier is a type of classifier for which the function $g(\cdot)$ is affine, i.e., for each class $k$:
 
-g_k(**x**) = **w**_k^T **x** + b_k, **w**_k ∈ ℝ^M, b_k ∈ ℝ
+$$g_k(\mathbf{x}) = \mathbf{w}_k^T \mathbf{x} + b_k, \quad \mathbf{w}_k \in \mathbb{R}^M, \quad b_k \in \mathbb{R}$$
 
-and the predicted label is ŷ = arg max_{k∈{1,...,K}} g_k(**x**).
+and the predicted label is $\hat{y} = \arg\max_{k \in \{1,\ldots,K\}} g_k(\mathbf{x})$.
 
 #### Assessing Performance
 
-A good classifier correctly classifies as many input vectors as possible. One common way to measure the quality of a classifier is the percentage of correctly classified points, namely **classification accuracy**. Specifically, let {(**x**^(i), y^(i))}_{i=1}^N denote a dataset. We define:
+A good classifier correctly classifies as many input vectors as possible. One common way to measure the quality of a classifier is the percentage of correctly classified points, namely **classification accuracy**. Specifically, let $\{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^N$ denote a dataset. We define:
 
-P(X, Y) = (1/N) Σ_{i=1}^N 1{ŷ^(i) = y^(i)}
+$$P(X, Y) = \frac{1}{N} \sum_{i=1}^N \mathbf{1}\{\hat{y}^{(i)} = y^{(i)}\}$$
 
-where 1{·} is the indicator function and ŷ^(i) = f(**x**^(i)).
+where $\mathbf{1}\{\cdot\}$ is the indicator function and $\hat{y}^{(i)} = f(\mathbf{x}^{(i)})$.
 
 #### Training a Model
 
-The classifier is trained on a labeled training set (X_train, Y_train) to determine parameters (such as **w**_k, b_k, and the decision rule h) that maximize performance on the training data (e.g., training accuracy P(X_train, Y_train)). Once trained, it is used to predict labels of new, unlabeled data points. The premise is that if the training set is a good representative of each class, the classifier will generalize well on unseen data and achieve similar accuracy.
+The classifier is trained on a labeled training set $(X_{\text{train}}, Y_{\text{train}})$ to determine parameters (such as $\mathbf{w}_k$, $b_k$, and the decision rule $h$) that maximize performance on the training data (e.g., training accuracy $P(X_{\text{train}}, Y_{\text{train}})$). Once trained, it is used to predict labels of new, unlabeled data points. The premise is that if the training set is a good representative of each class, the classifier will generalize well on unseen data and achieve similar accuracy.
 
 #### Centralized vs. Decentralized Sensing
 
-In many sensing systems, an input vector **x** ∈ ℝ^M may be acquired either by a single entity with access to all features (centralized) or by multiple entities that each observe only a subset of features (decentralized). In a decentralized system with S sensors, sensor s ∈ {1, ..., S} observes only its local feature block **x**^(s) ∈ ℝ^d_s such that M = Σ_{s=1}^S d_s. The local observations are typically sent to a **decision center**, which performs downstream tasks such as classification. In a centralized system, a single sensor observes the entire **x**.
+In many sensing systems, an input vector $\mathbf{x} \in \mathbb{R}^M$ may be acquired either by a single entity with access to all features (centralized) or by multiple entities that each observe only a subset of features (decentralized). In a decentralized system with $S$ sensors, sensor $s \in \{1, \ldots, S\}$ observes only its local feature block $\mathbf{x}^{(s)} \in \mathbb{R}^{d_s}$ such that $M = \sum_{s=1}^S d_s$. The local observations are typically sent to a **decision center**, which performs downstream tasks such as classification. In a centralized system, a single sensor observes the entire $\mathbf{x}$.
 
 In this project, we assume that our communication channel between the decision center and sensors (in both centralized and decentralized settings) is severely constrained. For each observation (an image), only a few bits can be transmitted, therefore, the local image features need to be compressed before transmission. In the decentralized case, we consider S = 4 sensors, each observing one non-overlapping quadrant of an image. In the centralized case, a single sensor observes the full image, but still need to compress it before classification.
 
@@ -68,15 +68,15 @@ Centralized access can exploit all cross-feature correlations when forming a rep
 
 #### Quantization
 
-Quantization is a fundamental technique for representing real-valued features **x** ∈ ℝ^M with a limited number of bits (i.e., one of 2^b number of discrete values). **Scalar quantization** treats each coordinate independently. At its simplest, given x_m ∈ ℝ with training range [x_min^m, x_max^m] and bit-depth b ∈ ℤ≥0, **uniform scalar quantization** uses the step Δ defined as:
+Quantization is a fundamental technique for representing real-valued features $\mathbf{x} \in \mathbb{R}^M$ with a limited number of bits (i.e., one of $2^b$ number of discrete values). **Scalar quantization** treats each coordinate independently. At its simplest, given $x_m \in \mathbb{R}$ with training range $[x_{\min}^m, x_{\max}^m]$ and bit-depth $b \in \mathbb{Z}_{\geq 0}$, **uniform scalar quantization** uses the step $\Delta$ defined as:
 
-Δ_m = (x_max^m - x_min^m) / (2^b - 1)
+$$\Delta_m = \frac{x_{\max}^m - x_{\min}^m}{2^b - 1}$$
 
-and maps x_m to the nearest grid level (with clipping at the end of the range), i.e.,
+and maps $x_m$ to the nearest grid level (with clipping at the end of the range), i.e.,
 
-Q_b(x_m) = Round(x_m / Δ_m) · Δ_m
+$$Q_b(x_m) = \text{Round}\left(\frac{x_m}{\Delta_m}\right) \cdot \Delta_m$$
 
-The componentwise rounding error obeys |x_m - Q_b(x_m)| ≤ Δ_m/2.
+The componentwise rounding error obeys $|x_m - Q_b(x_m)| \leq \Delta_m/2$.
 
 Although uniform scalar quantization is simple and efficient, it ignores possible structure in the data. **Vector quantization (VQ)** instead groups the values into vectors and maps each vector to the nearest representative in a codebook. The codebook is typically learned from the data and captures common patterns or clusters. This allows each code index to represent a whole block of correlated values.
 
@@ -88,9 +88,9 @@ In both cases, the core idea is to replace high-precision numerical data with co
 
 In this project, you will validate your algorithms and implementations on two datasets:
 
-1. **Synthetic Dataset:** We generated N = 1000 samples with dimension M = 2. Samples are drawn from one of three multivariate Gaussian distributions. Labels y^(i) ∈ {0, 1, 2} indicate which distribution **x**^(i) belongs to.
+1. **Synthetic Dataset:** We generated $N = 1000$ samples with dimension $M = 2$. Samples are drawn from one of three multivariate Gaussian distributions. Labels $y^{(i)} \in \{0, 1, 2\}$ indicate which distribution $\mathbf{x}^{(i)}$ belongs to.
 
-2. **Fashion-MNIST** (reduced): We will use a reduced version of the Fashion-MNIST dataset, which contains N = 1000 data samples from three classes. Each sample is a 28×28 image (M = 784) of a piece of clothing. The labels y^(i) ∈ {0, 3, 4} represent:
+2. **Fashion-MNIST** (reduced): We will use a reduced version of the Fashion-MNIST dataset, which contains $N = 1000$ data samples from three classes. Each sample is a $28 \times 28$ image ($M = 784$) of a piece of clothing. The labels $y^{(i)} \in \{0, 3, 4\}$ represent:
    - **0:** T-shirt/top
    - **3:** Dress
    - **4:** Coat
@@ -124,11 +124,11 @@ Keep train/validation/test strictly separate, fix random seeds, and report units
 
 ### Task 2: Build Your Quantizer
 
-**Formulation.** Assume the **centralized setting**, where a single sensor observes the whole image. Design LP/ILP(s) to quantize each image to a B_tot-bit representation. You can either use the given naive uniform scalar quantization scheme and optimized bit-allocation across features or design your own vector quantization scheme.
+**Formulation.** Assume the **centralized setting**, where a single sensor observes the whole image. Design LP/ILP(s) to quantize each image to a $B_{\text{tot}}$-bit representation. You can either use the given naive uniform scalar quantization scheme and optimized bit-allocation across features or design your own vector quantization scheme.
 
 **Implementation & Evaluation.**
 
-- **Metric:** test accuracy vs. quantization budget B_tot (centralized)
+- **Metric:** test accuracy vs. quantization budget $B_{\text{tot}}$ (centralized)
 - **Comparison:** compare the test accuracies using quantized features with Task 1 accuracy
 - **Plots:** a single figure overlaying both settings across B_tot
 - **Dataset:** perform Task 2 on the **Fashion-MNIST** dataset. (Optionally, you may also demonstrate centralized compression on the Synthetic dataset for illustration)
@@ -143,50 +143,50 @@ All experiments in Task 3 (3.1–3.3) should be conducted on the Fashion-MNIST d
 
 **[Optional if there are < 3 members in your group.]**
 
-**Formulation.** For each sensor, solve an LP/ILP to quantize the observed image features into k-bit representation. You can either reuse the LP/ILP from Task 2 or develop new programs if needed, this choice would not affect your grade.
+**Formulation.** For each sensor, solve an LP/ILP to quantize the observed image features into $k$-bit representation. You can either reuse the LP/ILP from Task 2 or develop new programs if needed, this choice would not affect your grade.
 
 **Implementation & Evaluation.**
 
-- **Metric:** test accuracy vs. per-sensor budget k (several k values spanning practical b_s)
-- **Comparison:** overlay centralized and decentralized curves at matched B_tot; discuss the centralized upper-bound intuition
-- **Plots:** accuracy (y-axis) vs. k (x-axis), showing your method and baseline; include the chosen b_s values per point in the caption or a small table
+- **Metric:** test accuracy vs. per-sensor budget $k$ (several $k$ values spanning practical $b_s$)
+- **Comparison:** overlay centralized and decentralized curves at matched $B_{\text{tot}}$; discuss the centralized upper-bound intuition
+- **Plots:** accuracy (y-axis) vs. $k$ (x-axis), showing your method and baseline; include the chosen $b_s$ values per point in the caption or a small table
 
 #### Task 3.2: Fixed Total Budget (B_tot across sensors)
 
-**Formulation.** Given a total budget B_tot, determine a bit-allocation (b_1, b_2, b_3, b_4) over sensors with Σ_s b_s ≤ B_tot. You may use an outer search over budgets/allocations with inner LP/ILP solves, or encode the choice directly in an ILP/MILP; justify your approach.
+**Formulation.** Given a total budget $B_{\text{tot}}$, determine a bit-allocation $(b_1, b_2, b_3, b_4)$ over sensors with $\sum_{s=1}^4 b_s \leq B_{\text{tot}}$. You may use an outer search over budgets/allocations with inner LP/ILP solves, or encode the choice directly in an ILP/MILP; justify your approach.
 
 **Implementation & Evaluation.**
 
-- **Metric:** test accuracy vs. B_tot
-- **Reporting:** for each B_tot, report the selected allocation (b_1, ..., b_4)
-- **Comparison:** overlay centralized and decentralized curves at matched B_tot; discuss the centralized upper-bound intuition
-- **Plots:** accuracy (y-axis) vs. B_tot (x-axis) with labels/legend indicating the chosen allocations
+- **Metric:** test accuracy vs. $B_{\text{tot}}$
+- **Reporting:** for each $B_{\text{tot}}$, report the selected allocation $(b_1, \ldots, b_4)$
+- **Comparison:** overlay centralized and decentralized curves at matched $B_{\text{tot}}$; discuss the centralized upper-bound intuition
+- **Plots:** accuracy (y-axis) vs. $B_{\text{tot}}$ (x-axis) with labels/legend indicating the chosen allocations
 
 #### Task 3.3: Feature Compression with a Target Accuracy
 
 **[Optional if there are < 4 members in your group.]**
 
-**Formulation.** Given a target accuracy, e.g., α ∈ {70%, 80%, 90%}, determine a bit allocation that achieves it. Do this (i) in the decentralized setting (minimize B_tot, choose (b_1, ..., b_4) with Σ_s b_s ≤ B_tot), and (ii) in the centralized setting (minimize B_tot). You may use an outer search over budgets/allocations with inner LP/ILP solves, or encode the choice directly in an ILP/MILP; justify your approach.
+**Formulation.** Given a target accuracy, e.g., $\alpha \in \{70\%, 80\%, 90\%\}$, determine a bit allocation that achieves it. Do this (i) in the decentralized setting (minimize $B_{\text{tot}}$, choose $(b_1, \ldots, b_4)$ with $\sum_{s=1}^4 b_s \leq B_{\text{tot}}$), and (ii) in the centralized setting (minimize $B_{\text{tot}}$). You may use an outer search over budgets/allocations with inner LP/ILP solves, or encode the choice directly in an ILP/MILP; justify your approach.
 
 **Note:** You are allowed to change the target accuracy range to get more meaningful and comparable plots; however, your algorithm should work for any target accuracy.
 
 **Implementation & Evaluation.**
 
-- **Metric:** minimal total bits to reach each α, and the corresponding allocation: decentralized (b_1, ..., b_4), centralized b (or blockwise)
-- **Plots:** minimal bits (y-axis) vs. target accuracy α (x-axis) for decentralized and centralized. You may plot both training accuracy and test accuracy, since the test accuracy might not reach the target ones
+- **Metric:** minimal total bits to reach each $\alpha$, and the corresponding allocation: decentralized $(b_1, \ldots, b_4)$, centralized $b$ (or blockwise)
+- **Plots:** minimal bits (y-axis) vs. target accuracy $\alpha$ (x-axis) for decentralized and centralized. You may plot both training accuracy and test accuracy, since the test accuracy might not reach the target ones
 - **Discussion:** briefly interpret the gap between decentralized and centralized results
 
 ### What to Include for Each Item
 
-- **Formulation:** decision variables (e.g., u, v, b, ξ; and t if you use a robust LP), constraints, objective
-- **Assumptions:** feature scaling; how your quantizer is defined (e.g., scalar, companded, vector/codebook) and how you count bits per image; validation protocol used to pick {b_s} or b or other hyperparameters; strict train/val/test separation (no test leakage)
+- **Formulation:** decision variables (e.g., $u$, $v$, $b$, $\xi$; and $t$ if you use a robust LP), constraints, objective
+- **Assumptions:** feature scaling; how your quantizer is defined (e.g., scalar, companded, vector/codebook) and how you count bits per image; validation protocol used to pick $\{b_s\}$ or $b$ or other hyperparameters; strict train/val/test separation (no test leakage)
 - **Relaxations:** any ILP→LP relaxation; rounding scheme to obtain integral decisions if used
 - **Plots:**
   1. **Task 1** (both datasets): one bar (or point) per dataset showing Task 1 test accuracy (Synthetic and Fashion-MNIST)
-  2. **Task 2** (Fashion-MNIST): accuracy (y) vs. total budget B_tot (x); we recommend overlaying the Task 1 baseline as a dashed line
-  3. **Task 3.1** (Fashion-MNIST): accuracy (y) vs. per-sensor budget k (x); also report the chosen (b_1, ..., b_4) or equivalent per-sensor allocation for each point
-  4. **Task 3.2** (Fashion-MNIST): accuracy (y) vs. B_tot (x), and the selected allocation per point; provide a centralized vs. decentralized overlay at matched B_tot
-  5. **Task 3.3** (Fashion-MNIST): minimal total bits (y) vs. target accuracy α (x) for centralized and decentralized
+  2. **Task 2** (Fashion-MNIST): accuracy (y) vs. total budget $B_{\text{tot}}$ (x); we recommend overlaying the Task 1 baseline as a dashed line
+  3. **Task 3.1** (Fashion-MNIST): accuracy (y) vs. per-sensor budget $k$ (x); also report the chosen $(b_1, \ldots, b_4)$ or equivalent per-sensor allocation for each point
+  4. **Task 3.2** (Fashion-MNIST): accuracy (y) vs. $B_{\text{tot}}$ (x), and the selected allocation per point; provide a centralized vs. decentralized overlay at matched $B_{\text{tot}}$
+  5. **Task 3.3** (Fashion-MNIST): minimal total bits (y) vs. target accuracy $\alpha$ (x) for centralized and decentralized
 
 ---
 
@@ -199,12 +199,12 @@ Please download `project_code.zip` from Bruin Learn. It contains:
 Utility functions for data loading, preprocessing, sensor splits, and plotting:
 
 - `prepare_synthetic_data()` – returns the small 2-D, 3-class synthetic dataset with fixed train/val/test splits (for optional visualization and Task 1 intuition)
-- `prepare_mnist_data()` – returns the reduced 3-class Fashion-MNIST subset (flattened 28×28 images) with fixed train/val/test splits
-- `split_into_quadrants(X)` – splits each Fashion-MNIST image into four non-overlapping quadrant blocks (sensors); returns index sets {I_s}_{s=1}^4 and the corresponding block views
+- `prepare_mnist_data()` – returns the reduced 3-class Fashion-MNIST subset (flattened $28 \times 28$ images) with fixed train/val/test splits
+- `split_into_quadrants(X)` – splits each Fashion-MNIST image into four non-overlapping quadrant blocks (sensors); returns index sets $\{I_s\}_{s=1}^4$ and the corresponding block views
 - `plot_result_per_sensor(result_dict)` – Task 3.1: plots accuracy vs. per-sensor budget k
-- `plot_result_total(result_dict)` – Task 2 / Task 3.2: plots accuracy vs. total budget B_tot and can annotate chosen (b_1, ..., b_4)
-- `plot_result_centralized_vs_decentralized(result_dict)` – overlays centralized and decentralized accuracy curves at matched B_tot
-- `plot_result_target(result_dict)` – Task 3.3: plots minimal bits vs. target accuracy α for both settings
+- `plot_result_total(result_dict)` – Task 2 / Task 3.2: plots accuracy vs. total budget $B_{\text{tot}}$ and can annotate chosen $(b_1, \ldots, b_4)$
+- `plot_result_centralized_vs_decentralized(result_dict)` – overlays centralized and decentralized accuracy curves at matched $B_{\text{tot}}$
+- `plot_result_target(result_dict)` – Task 3.3: plots minimal bits vs. target accuracy $\alpha$ for both settings
 
 You do not need to write data-loading or plotting code. Each plotting function expects a small dictionary; the required keys are documented in the comments inside `utils.py`. **Do not change function signatures or internal code in `utils.py`.**
 
@@ -217,8 +217,8 @@ Contains the synthetic 2-D dataset and the reduced 3-class Fashion-MNIST dataset
 A skeleton you will complete. It contains three classes you must implement:
 
 - **`MyDecentralized`** – for Decentralized Classification (no compression)
-- **`MyFeatureCompression`** – for Feature Compression: (Task 3.1) fixed per-sensor budget k, (Task 3.2) fixed total budget B_tot, and the Task 2 centralized baseline
-- **`MyTargetAllocator`** – for Target-accuracy bit allocation (minimal bits to reach α)
+- **`MyFeatureCompression`** – for Feature Compression: (Task 3.1) fixed per-sensor budget $k$, (Task 3.2) fixed total budget $B_{\text{tot}}$, and the Task 2 centralized baseline
+- **`MyTargetAllocator`** – for Target-accuracy bit allocation (minimal bits to reach $\alpha$)
 
 Submit your file as `MySolution_{groupnumber}.py`. You may add helper methods or auxiliary files, but keep the provided class/method names and signatures intact so we can run the autograder.
 
@@ -230,7 +230,7 @@ Submit your file as `MySolution_{groupnumber}.py`. You may add helper methods or
 
 3. **No test leakage.** Do not use X_test or Y_test during training, model selection, or bit-allocation search. Test labels are used only by the provided evaluation helpers.
 
-4. **Reproducibility.** Fix random seeds. Keep train/val/test strict. Log solver tolerances/time limits, search grids for {b_s} or b, and any preprocessing flags (e.g., normalization)—and ensure all budget comparisons are fair.
+4. **Reproducibility.** Fix random seeds. Keep train/val/test strict. Log solver tolerances/time limits, search grids for $\{b_s\}$ or $b$, and any preprocessing flags (e.g., normalization)—and ensure all budget comparisons are fair.
 
 ---
 
