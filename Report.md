@@ -52,13 +52,13 @@ where $C = 1.0$ is the regularization parameter for slack.
 ### 2.3 Results
 
 **Synthetic Dataset (2D, 3 classes):**
-- Training Accuracy: 96.75%
-- Test Accuracy: 97.60%
+- Training Accuracy: $96.75\%$
+- Test Accuracy: $97.60\%$
 - Note: Required soft margin fallback due to non-linear separability
 
 **Fashion-MNIST Dataset (784D, 3 classes):**
-- Training Accuracy: 100.00%
-- Test Accuracy: 89.80%
+- Training Accuracy: $100.00\%$
+- Test Accuracy: $89.80\%$
 - This serves as the baseline for comparison with compressed features
 
 ---
@@ -102,24 +102,30 @@ Test accuracy vs. total budget $B_{\text{tot}}$ on Fashion-MNIST:
 
 | Budget (bits) | Bits/Feature | Test Accuracy |
 |---------------|--------------|---------------|
-| 100           | 0            | 32.4%         |
-| 400           | 0            | 32.4%         |
-| 784           | 1            | 85.4%         |
-| 1568          | 2            | 89.4%         |
-| 2352          | 3            | 89.6%         |
-| 3136          | 4            | 90.4%         |
+| 100           | 0            | $32.4\%$      |
+| 400           | 0            | $32.4\%$      |
+| 784           | 1            | $85.4\%$      |
+| 1568          | 2            | $89.4\%$      |
+| 2352          | 3            | $89.6\%$      |
+| 3136          | 4            | $90.4\%$      |
 
 **Observations:**
-- Very low budgets ($< 1$ bit/feature) result in poor accuracy (~32%)
-- 1 bit/feature achieves 85.4% accuracy (5.4% below baseline)
-- 2 bits/feature achieves 89.4% accuracy (0.4% below baseline)
-- Higher bit-depths approach baseline performance (89.8%)
+- Very low budgets ($< 1$ bit/feature) result in poor accuracy ($\sim 32\%$)
+- $1$ bit/feature achieves $85.4\%$ accuracy ($5.4\%$ below baseline)
+- $2$ bits/feature achieves $89.4\%$ accuracy ($0.4\%$ below baseline)
+- Higher bit-depths approach baseline performance ($89.8\%$)
 
 ---
 
-## 4. Task 3.1: Decentralized Compression (Fixed Per-Sensor Budget)
+## 4. Task 3: Feature Compression
 
-### 4.1 Formulation
+In this task, we move to the **decentralized setting**, where each sensor observes a quadrant of an image, which will be quantized independently and transmitted to the decision center.
+
+All experiments in Task 3 (3.1–3.3) should be conducted on the Fashion-MNIST dataset; the 2-D synthetic set is not applicable to the quadrant/sensor setting.
+
+### 4.1 Task 3.1: Fixed Per-Sensor Budget
+
+#### 4.1.1 Formulation
 
 In the decentralized setting, each of $4$ sensors observes one quadrant ($196$ features each). For a fixed per-sensor budget $k$ (bits per image per sensor):
 
@@ -136,37 +142,35 @@ After quantization, quantized blocks from all sensors are concatenated to form t
 - Per-sensor budget: $k$ bits per image per sensor
 - Total budget: $B_{\text{tot}} = 4k$ bits per image
 
-### 4.2 Assumptions
+#### 4.1.2 Assumptions
 
 - **Independent Quantization:** Each sensor quantizes its features independently using its own quantization parameters
 - **Uniform Per-Sensor Allocation:** All sensors receive the same bit budget $k$
 - **No Cross-Sensor Coordination:** Sensors do not coordinate; each quantizes based only on its local training data
-- **Train/Val/Test Separation:** Quantization parameters computed from each sensor's training block, applied to corresponding val/test blocks
+- **Train/Val/Test Separation:** Quantization parameters computed from each sensor's training block, applied to corresponding validation/test blocks
 
-### 4.3 Results
+#### 4.1.3 Results
 
 Test accuracy vs. per-sensor budget $k$ on Fashion-MNIST:
 
 | $k$ (bits/sensor) | Total Budget | $(b_1, b_2, b_3, b_4)$ (bits/feature) | Test Accuracy |
 |-------------------|--------------|--------------------------------------|---------------|
-| 25                | 100          | $(0, 0, 0, 0)$                        | 32.4%         |
-| 100               | 400          | $(0, 0, 0, 0)$                        | 32.4%         |
-| 196               | 784          | $(1, 1, 1, 1)$                        | 85.4%         |
-| 392               | 1568         | $(2, 2, 2, 2)$                        | 89.4%         |
-| 588               | 2352         | $(3, 3, 3, 3)$                        | 89.6%         |
-| 784               | 3136         | $(4, 4, 4, 4)$                        | 90.4%         |
+| 25                | 100          | $(0, 0, 0, 0)$                        | $32.4\%$      |
+| 100               | 400          | $(0, 0, 0, 0)$                        | $32.4\%$      |
+| 196               | 784          | $(1, 1, 1, 1)$                        | $85.4\%$      |
+| 392               | 1568         | $(2, 2, 2, 2)$                        | $89.4\%$      |
+| 588               | 2352         | $(3, 3, 3, 3)$                        | $89.6\%$      |
+| 784               | 3136         | $(4, 4, 4, 4)$                        | $90.4\%$      |
 
 **Observations:**
 - Performance matches centralized compression at matched total budgets
 - This is expected since uniform per-sensor allocation is equivalent to uniform centralized allocation when total budgets match
 
----
+### 4.2 Task 3.2: Fixed Total Budget
 
-## 5. Task 3.2: Decentralized Compression (Fixed Total Budget)
+#### 4.2.1 Formulation
 
-### 5.1 Formulation
-
-Given a total budget $B_{\text{tot}}$ shared across 4 sensors, we optimize bit allocation $(b_1, b_2, b_3, b_4)$ to maximize classification accuracy.
+Given a total budget $B_{\text{tot}}$ shared across $4$ sensors, we optimize bit allocation $(b_1, b_2, b_3, b_4)$ to maximize classification accuracy.
 
 **Approach: Outer Search with Validation-Based Selection**
 
@@ -194,36 +198,34 @@ We use an outer search over candidate allocations with inner LP solves:
 - Maximize validation accuracy (used for selection)
 - Report test accuracy for selected allocation
 
-### 5.2 Assumptions
+#### 4.2.2 Assumptions
 
 - **Search Strategy:** Limited search space for efficiency (uniform + a few non-uniform candidates)
 - **Validation-Based Selection:** Use validation accuracy to choose among candidate allocations (strict train/val/test separation)
 - **Independent Per-Sensor Quantization:** Each sensor quantizes independently with its allocated bits
 - **Bit Accounting:** Total bits = $\sum_{s=1}^4 d_s \cdot b_s$ where $d_s = 196$ for all sensors
 
-### 5.3 Results
+#### 4.2.3 Results
 
 Test accuracy vs. total budget $B_{\text{tot}}$ with optimized allocations:
 
 | Budget | Selected Allocation $(b_1, b_2, b_3, b_4)$ | Actual Budget | Test Accuracy |
 |--------|-------------------------------------------|---------------|---------------|
-| 100    | $(0, 0, 0, 0)$                             | 0             | 32.4%         |
-| 400    | $(0, 1, 0, 0)$                             | 196           | 76.8%         |
-| 784    | $(1, 1, 1, 1)$                             | 784           | 85.4%         |
-| 1568   | $(2, 2, 2, 2)$                             | 1568          | 89.4%         |
-| 2352   | $(2, 4, 2, 2)$                             | 1960          | 90.4%         |
-| 3136   | $(3, 5, 3, 3)$                             | 2744          | 90.2%         |
+| 100    | $(0, 0, 0, 0)$                             | 0             | $32.4\%$      |
+| 400    | $(0, 1, 0, 0)$                             | 196           | $76.8\%$      |
+| 784    | $(1, 1, 1, 1)$                             | 784           | $85.4\%$      |
+| 1568   | $(2, 2, 2, 2)$                             | 1568          | $89.4\%$      |
+| 2352   | $(2, 4, 2, 2)$                             | 1960          | $90.4\%$      |
+| 3136   | $(3, 5, 3, 3)$                             | 2744          | $90.2\%$      |
 
 **Key Observations:**
 - **Non-uniform allocations can outperform uniform:** At budget $400$, allocation $(0, 1, 0, 0)$ achieves $76.8\%$ vs. uniform $(0, 0, 0, 0)$ at $32.4\%$
 - **Higher budgets benefit from non-uniform allocation:** At budget $2352$, allocation $(2, 4, 2, 2)$ achieves $90.4\%$ accuracy, matching higher uniform allocations
 - **Centralized vs. Decentralized:** At matched budgets, decentralized with optimized allocation can match or slightly exceed centralized performance
 
----
+### 4.3 Task 3.3: Minimal Bits for Target Accuracy
 
-## 6. Task 3.3: Minimal Bits for Target Accuracy
-
-### 6.1 Formulation
+#### 4.3.1 Formulation
 
 Given a target accuracy $\alpha$, find the minimal total bit budget $B_{\text{tot}}$ (and allocation for decentralized) that achieves test accuracy $\geq \alpha$.
 
@@ -250,14 +252,14 @@ Given a target accuracy $\alpha$, find the minimal total bit budget $B_{\text{to
 **Objective:**
 - Minimize $B_{\text{tot}}$
 
-### 6.2 Assumptions
+#### 4.3.2 Assumptions
 
 - **Search Grid:** Predefined grid of candidate budgets: $B_{\text{grid}} = \{100, 400, 784, 1568, 2352, 3136\}$
 - **Greedy Search:** Search in ascending order, return first budget achieving target
 - **Test Accuracy:** Uses test set accuracy (as per specification) to determine if target is met
 - **Train/Val/Test Separation:** Validation used for allocation selection (Task 3.2), test used only for final accuracy evaluation
 
-### 6.3 Results
+#### 4.3.3 Results
 
 Minimal bits required to achieve target accuracy $\alpha$:
 
@@ -283,7 +285,7 @@ Minimal bits required to achieve target accuracy $\alpha$:
 
 ---
 
-## 7. Conclusions
+## 5. Conclusions
 
 This project successfully demonstrates the application of Linear Programming to multi-class classification under communication constraints. Key findings:
 
@@ -300,4 +302,3 @@ The formulations are computationally tractable and provide interpretable solutio
 
 1. Fashion-MNIST Dataset: https://github.com/zalandoresearch/fashion-mnist
 2. CVXPY Documentation: https://www.cvxpy.org/
-
