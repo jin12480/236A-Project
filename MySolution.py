@@ -1,23 +1,89 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 ### TODO: import any other packages you need for your solution
-
+import cvxpy as cp
 
 # --- Task 1 ---
 class MyDecentralized:
-    def __init__(self, K):
+    def __init__(self, K, l1_budget=None):
         self.K = K  # number of classes
 
         ### TODO: Initialize other parameters needed in your algorithm
         # examples:
         # self.W = None   # shape (K, M)
         # self.b = None   # shape (K,)
+        self.K = K
+        self.l1_budget = l1_budget  # 这是 LP 里的 “L1 范数预算 C”
 
+        # 参数（LP 解出来以后会填充）
+        self.W = None          # (K, M)
+        self.b = None          # (K,)
+        self.mean = None       # 标准化用
+        self.std = None
+        self.class_labels = None  # 原始标签，例如 array([0, 3, 4])
+        
     def train(self, trainX, trainY):
         ''' Task 1
             TODO: train a multi-class linear classifier using LP/ILP.
                   Store learned parameters you will use in predict().
         '''
+        # ---- 数据预处理 ----
+        X = np.asarray(trainX, dtype=float)
+        y = np.asarray(trainY, dtype=int)
+        N, M = X.shape
+
+        # 标签统一编码成 {0,1,...,K-1}，方便在 LP 里做索引
+        labels, y_enc = np.unique(y, return_inverse=True)
+        self.class_labels = labels
+        K = len(labels)        # 真正的类别数
+        self.K = K             # 覆盖掉 init 里传进来的 K
+
+        # 标准化：LP 本身不关心，但数值上更稳定
+        self.mean = X.mean(axis=0)
+        self.std = X.std(axis=0) + 1e-8
+        X_std = (X - self.mean) / self.std
+
+        # ---- LP 变量：decision variables ----
+        # W, b: 分类器参数
+        W = cp.Variable((K, M))
+        b = cp.Variable(K)
+
+        # xi: 每个样本的 slack 变量，表示 margin violation
+        xi = cp.Variable(N, nonneg=True)
+
+        # U: 线性化 L1 范数 ||W||_1 = sum_{k,m} |W_{km}|
+        U = cp.Variable((K, M), nonneg=True)
+
+        constraints = []
+
+        # (1) margin 约束：
+        # 对每个样本 i，对每个错误类 k != yi：
+        #   (w_{yi}^T x_i + b_{yi}) - (w_k^T x_i + b_k) + xi_i >= 1
+        for i in range(N):
+            yi = int(y_enc[i])                 # 编码后的标签 (0..K-1)
+            scores_i = W @ X_std[i] + b        # shape: (K,)
+            for k in range(K):
+                if k == yi:
+                    continue
+                constraints.append(scores_i[yi] - scores_i[k] + xi[i] >= 1)
+
+        # (2) L1 线性化：U >= |W|
+        constraints += [U >= W, U >= -W]
+
+        # (3) L1 budget 约束（如果给了 C，就 enforce sum(U) <= C）
+        if self.l1_budget is not None:
+            constraints.append(cp.sum(U) <= self.l1_budget)
+
+        # ---- 目标函数：最小化 sum_i xi_i ----
+        objective = cp.Minimize(cp.sum(xi))
+
+        # ---- 解 LP ----
+        prob = cp.Problem(objective, constraints)
+        prob.solve(solver=cp.SCS, verbose=False)
+
+        # 保存最优解
+        self.W = W.value
+        self.b = b.value
         pass
 
     def predict(self, testX):
@@ -25,6 +91,18 @@ class MyDecentralized:
             TODO: predict class labels for the input data (testX) using the trained classifier
         '''
         # predY = ...
+        if self.W is None or self.b is None:
+            raise ValueError("Model not trained yet.")
+
+        X = np.asarray(testX, dtype=float)
+        X_std = (X - self.mean) / self.std
+
+        # 线性得分 g_k(x) = w_k^T x + b_k
+        scores = X_std @ self.W.T + self.b    # (N, K)
+        pred_idx = scores.argmax(axis=1)      # 得到内部编码 0..K-1
+
+        # 映射回原始标签（例如 0/3/4）
+        predY = self.class_labels[pred_idx]
         return predY
 
     def evaluate(self, testX, testY):
